@@ -25,14 +25,14 @@ class TaskProgress extends StatelessWidget {
     return Row(
       children: [
         _buildText(),
-        Expanded(child: _buildProgress()),
+        // Expanded(child: _buildProgress()),
       ],
     );
   }
 
   Widget _buildText() {
     return Text(
-      "${data.totalCompleted} of ${data.totalTask} completed",
+      "",
       style: TextStyle(
         fontWeight: FontWeight.w600,
         color: kFontColorPallets[2],
@@ -41,11 +41,11 @@ class TaskProgress extends StatelessWidget {
     );
   }
 
-  Widget _buildProgress() {
-    return LinearPercentIndicator(
-      percent: data.totalCompleted / data.totalTask,
-      progressColor: Colors.blueGrey,
-      backgroundColor: Colors.blueGrey[200],
-    );
-  }
+  // Widget _buildProgress() {
+  //   return LinearPercentIndicator(
+  //     percent: data.totalCompleted / data.totalTask,
+  //     progressColor: Colors.blueGrey,
+  //     backgroundColor: Colors.blueGrey[200],
+  //   );
+  // }
 }

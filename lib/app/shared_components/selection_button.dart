@@ -146,7 +146,7 @@ class _Button extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: Text(
-              (data.totalNotif! >= 100) ? "99+" : "${data.totalNotif}",
+              (data.totalNotif! >= 100) ? "30+" : "${data.totalNotif}",
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 10,

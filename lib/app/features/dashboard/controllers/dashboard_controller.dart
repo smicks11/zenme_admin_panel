@@ -1,21 +1,146 @@
+// ignore_for_file: avoid_print
+
 part of dashboard;
 
 class DashboardController extends GetxController {
   final scafoldKey = GlobalKey<ScaffoldState>();
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final editformKey = GlobalKey<FormState>();
+  final authKey = GlobalKey<FormState>();
+  final updateMedformKey = GlobalKey<FormState>();
+  Rx<bool> obserText = true.obs;
+  Rx<bool> authLoad = false.obs;
+
+  Rx<Uint8List>? selectedImageFiles = Uint8List(0).obs;
+  Rx<Uint8List>? selectedMusicFiles = Uint8List(0).obs;
+
+  Rx<PlatformFile>? dummyselectedImageFiles =
+      PlatformFile(name: '', size: 0).obs;
+  Rx<PlatformFile>? dummyselectedAudioFiles =
+      PlatformFile(name: '', size: 0).obs;
+  // PlatformFile(name: '', size: 0).obs;
+  // Rx<PlatformFile>? selectedMusicFiles = PlatformFile(name: '', size: 0).obs;
+
+  changeAuthLoad(bool value, StateSetter setState) {
+    setState((){
+      authLoad.value = value;
+    });
+  }
+
+  togglePasswordIcon() {
+    obserText.value = !obserText.value;
+  }
+
+  getDummySelectedImageFile(PlatformFile file, StateSetter setState) {
+    dummyselectedImageFiles?.value = file;
+    setState(() {});
+  }
+
+  getDummySelectedAudioFile(PlatformFile file, StateSetter setState) {
+    dummyselectedAudioFiles?.value = file;
+    setState(() {});
+  }
+
+  getSelectedImageFile(Uint8List file, StateSetter setState) {
+    selectedImageFiles?.value = file;
+    setState(() {});
+  }
+
+  getSelectedAudioFile(Uint8List file, StateSetter setState) {
+    selectedMusicFiles?.value = file;
+    setState(() {});
+  }
+
+  final TextEditingController email = TextEditingController();
+  final TextEditingController password = TextEditingController();
+  final TextEditingController categoryName = TextEditingController();
+  final TextEditingController categoryDesc = TextEditingController();
+
+  final TextEditingController updateMedcategoryName = TextEditingController();
+  final TextEditingController updateMedcategoryDesc = TextEditingController();
+  RxBool updateMedLoadingState = false.obs;
+  RxBool editLoadingState = false.obs;
+  RxBool showEditScreenVariable = false.obs;
 
   RxInt screenControllerIndex = 0.obs;
+  RxInt homeOptionIndex = 0.obs;
+
+  UploadTask? uploadTask;
+
+  Future<String> uploadImage(
+      {required Uint8List whichFile, required String fileName}) async {
+    final path = 'files/$fileName';
+    // final file = File(whichFile.path!);
+
+    final ref = FirebaseStorage.instance.ref().child(path);
+    uploadTask = ref.putData(whichFile);
+
+    final snapshot = await uploadTask!.whenComplete(() => {});
+
+    final urlDownload = await snapshot.ref.getDownloadURL();
+    print('Dowload Link: $urlDownload');
+
+    return urlDownload;
+  }
+
+  Future updateMeditationnOfTheMonth({
+    required BuildContext context,
+    required String collectDesc,
+    required String collectTitle,
+    required String audioLink,
+    required String imageLink,
+  }) async {
+    late List<dynamic> earthContent;
+
+    // late List<dynamic> airContentSecondList;
+    try {
+      _db.collection("meditation").doc('LbyVeNQ0DPGmEuMB1S9Q').set({
+        "meditation": FieldValue.arrayUnion([
+          {
+            "description": collectDesc,
+            "title": collectTitle,
+            "image": imageLink,
+            "audio": audioLink,
+            "date": DateTime.now(),
+          }
+        ]),
+      }, SetOptions(merge: false)).then((value) {
+        AppDialog.showSuccessDialog(
+          lottie: '64787-success.json',
+          context: context,
+          header: "Meditation of the month updated",
+          body: "Ride on",
+        );
+      });
+    } catch (e) {
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header: "Something went wrong 😞",
+        body: "Retry",
+      );
+      print(e.toString());
+    }
+  }
 
   final dataProfil = const UserProfileData(
-    image: AssetImage(ImageRasterPath.man),
-    name: "Firgia",
-    jobDesk: "Project Manager",
+    image: NetworkImage("https://static.wixstatic.com/media/720907_4e588a93a1234b89b5ed3ae1d69395ce~mv2.jpg/v1/crop/x_0,y_22,w_1242,h_1231/fill/w_686,h_680,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/head%20shot%202_JPG.jpg"),
+    name: "Taleen Sofee",
+    jobDesk: "Admin",
   );
 
   final member = ["Avril Kimberly", "Michael Greg"];
 
   final dataTask = const TaskProgressData(totalTask: 5, totalCompleted: 1);
+
+  showEditScreen(bool value) {
+    showEditScreenVariable.value = value;
+  }
+
+  changeEditLoadingState(bool value) {
+    editLoadingState.value = value;
+  }
 
   final taskInProgress = [
     CardTaskData(
@@ -29,12 +154,12 @@ class DashboardController extends GetxController {
       dueDate: DateTime.now().add(const Duration(hours: 4)),
     ),
     CardTaskData(
-      label: "Crystal of the month",
+      label: "Update Crystal of the month image",
       jobDesk: "Admin",
       dueDate: DateTime.now().add(const Duration(days: 2)),
     ),
     CardTaskData(
-      label: "Quote",
+      label: "Update Quote",
       jobDesk: "Admin",
       dueDate: DateTime.now().add(const Duration(minutes: 50)),
     )
@@ -122,7 +247,32 @@ class DashboardController extends GetxController {
     screenControllerIndex.value = index;
   }
 
-  void onSelectedTaskMenu(int index, String label) {}
+  void onSelectedHomeOptions(int index) {
+    print(index);
+    homeOptionIndex.value = index;
+  }
+
+  void onSelectedTaskMenu(int index, String label) {
+    if (index == 0) {
+      launchUrl(
+        Uri.parse('https://www.taleensofee.com/'),
+        webOnlyWindowName: '_blank',
+      );
+    }
+    if (index == 1) {
+      launchUrl(
+        Uri.parse('https://www.taleensofee.com/copy-of-about-me'),
+        webOnlyWindowName: '_blank',
+      );
+    }
+    if (index == 2) {
+      launchUrl(
+        Uri.parse(
+            'https://www.amazon.com/SELF-talk-33-levels-provement/dp/B08S2YCJW2/ref=tmm_pap_swatch_0?_encoding=UTF8&qid=1657645577&sr=8-1'),
+        webOnlyWindowName: '_blank',
+      );
+    }
+  }
 
   void searchTask(String value) {}
 
@@ -309,5 +459,376 @@ class DashboardController extends GetxController {
     }
 
     return userList;
+  }
+
+  //UPDATE DB METHODS
+  Future updateAirContent({
+    required BuildContext context,
+    required String collectedDesc,
+    required String collectedTitle,
+    required String categoryName,
+    required String categoryDesc,
+  }) async {
+    late List<dynamic> airContent;
+
+    // late List<dynamic> airContentSecondList;
+    try {
+      QuerySnapshot snapshot = await _db.collection("elements").get();
+      snapshot.docs.forEach((element) {
+        if (element['id'] == "tjICTgjPbKos53G0JIjF") {
+          airContent = element['elementContent'];
+          airContent.forEach((element) {
+            if (element['description'] == collectedDesc &&
+                element['name'] == collectedTitle) {
+              _db.collection("elements").doc('tjICTgjPbKos53G0JIjF').set({
+                "elementContent": FieldValue.arrayUnion([
+                  {
+                    "description": categoryDesc,
+                    "name": categoryName,
+                  }
+                ])
+              }, SetOptions(merge: true)).then((value) async {
+                QuerySnapshot snapshot = await _db.collection("elements").get();
+                snapshot.docs.forEach((element) {
+                  if (element['id'] == "tjICTgjPbKos53G0JIjF") {
+                    airContent = element['elementContent'];
+                    airContent.removeWhere((element) =>
+                        element['description'] == collectedDesc &&
+                        element['name'] == collectedTitle);
+                    _db.collection("elements").doc('tjICTgjPbKos53G0JIjF').set({
+                      "categoryName": "air",
+                      "elementContent": FieldValue.arrayUnion(airContent),
+                      "id": "tjICTgjPbKos53G0JIjF"
+                    }).then((value) {
+                      AppDialog.showUpdateDialog(
+                        context: context,
+                        header: "Content has been updated",
+                        body: "Go back",
+                      );
+                    });
+                  }
+                });
+              });
+            }
+          });
+        }
+      });
+    } catch (e) {
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header: "Something went wrong 😞",
+        body: "Retry",
+      );
+      print(e.toString());
+    }
+  }
+
+  Future updateFireContent({
+    required BuildContext context,
+    required String collectedDesc,
+    required String collectedTitle,
+    required String categoryName,
+    required String categoryDesc,
+  }) async {
+    late List<dynamic> fireContent;
+
+    // late List<dynamic> airContentSecondList;
+    try {
+      QuerySnapshot snapshot = await _db.collection("elements").get();
+      snapshot.docs.forEach((element) {
+        if (element['id'] == "dssRhQXKBUbksccN8eTR") {
+          fireContent = element['elementContent'];
+          fireContent.forEach((element) {
+            if (element['description'] == collectedDesc &&
+                element['name'] == collectedTitle) {
+              _db.collection("elements").doc('dssRhQXKBUbksccN8eTR').set({
+                "elementContent": FieldValue.arrayUnion([
+                  {
+                    "description": categoryDesc,
+                    "name": categoryName,
+                  }
+                ])
+              }, SetOptions(merge: true)).then((value) async {
+                QuerySnapshot snapshot = await _db.collection("elements").get();
+                snapshot.docs.forEach((element) {
+                  if (element['id'] == "dssRhQXKBUbksccN8eTR") {
+                    fireContent = element['elementContent'];
+                    fireContent.removeWhere((element) =>
+                        element['description'] == collectedDesc &&
+                        element['name'] == collectedTitle);
+                    _db.collection("elements").doc('dssRhQXKBUbksccN8eTR').set({
+                      "categoryName": "fire",
+                      "elementContent": FieldValue.arrayUnion(fireContent),
+                      "id": "dssRhQXKBUbksccN8eTR"
+                    }).then((value) {
+                      AppDialog.showUpdateDialog(
+                        context: context,
+                        header: "Content has been updated",
+                        body: "Go back",
+                      );
+                    });
+                  }
+                });
+              });
+            }
+          });
+        }
+      });
+    } catch (e) {
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header: "Something went wrong 😞",
+        body: "Retry",
+      );
+      print(e.toString());
+    }
+  }
+
+  Future updateEarthContent({
+    required BuildContext context,
+    required String collectedDesc,
+    required String collectedTitle,
+    required String categoryName,
+    required String categoryDesc,
+  }) async {
+    late List<dynamic> earthContent;
+
+    // late List<dynamic> airContentSecondList;
+    try {
+      QuerySnapshot snapshot = await _db.collection("elements").get();
+      snapshot.docs.forEach((element) {
+        if (element['id'] == "WGdHT2F3qqOKDCayzSPv") {
+          earthContent = element['elementContent'];
+          earthContent.forEach((element) {
+            if (element['description'] == collectedDesc &&
+                element['name'] == collectedTitle) {
+              _db.collection("elements").doc('WGdHT2F3qqOKDCayzSPv').set({
+                "elementContent": FieldValue.arrayUnion([
+                  {
+                    "description": categoryDesc,
+                    "name": categoryName,
+                  }
+                ])
+              }, SetOptions(merge: true)).then((value) async {
+                QuerySnapshot snapshot = await _db.collection("elements").get();
+                snapshot.docs.forEach((element) {
+                  if (element['id'] == "WGdHT2F3qqOKDCayzSPv") {
+                    earthContent = element['elementContent'];
+                    earthContent.removeWhere((element) =>
+                        element['description'] == collectedDesc &&
+                        element['name'] == collectedTitle);
+                    _db.collection("elements").doc('WGdHT2F3qqOKDCayzSPv').set({
+                      "categoryName": "earth",
+                      "elementContent": FieldValue.arrayUnion(earthContent),
+                      "id": "WGdHT2F3qqOKDCayzSPv"
+                    }).then((value) {
+                      AppDialog.showUpdateDialog(
+                        context: context,
+                        header: "Content has been updated",
+                        body: "Go back",
+                      );
+                    });
+                  }
+                });
+              });
+            }
+          });
+        }
+      });
+    } catch (e) {
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header: "Something went wrong 😞",
+        body: "Retry",
+      );
+      print(e.toString());
+    }
+  }
+
+  Future updateWaterContent({
+    required BuildContext context,
+    required String collectedDesc,
+    required String collectedTitle,
+    required String categoryName,
+    required String categoryDesc,
+  }) async {
+    late List<dynamic> waterContent;
+
+    // late List<dynamic> airContentSecondList;
+    try {
+      QuerySnapshot snapshot = await _db.collection("elements").get();
+      snapshot.docs.forEach((element) {
+        if (element['id'] == "yntDFLuVbspzzKIDcpEI") {
+          waterContent = element['elementContent'];
+          waterContent.forEach((element) {
+            if (element['description'] == collectedDesc &&
+                element['name'] == collectedTitle) {
+              _db.collection("elements").doc('yntDFLuVbspzzKIDcpEI').set({
+                "elementContent": FieldValue.arrayUnion([
+                  {
+                    "description": categoryDesc,
+                    "name": categoryName,
+                  }
+                ])
+              }, SetOptions(merge: true)).then((value) async {
+                QuerySnapshot snapshot = await _db.collection("elements").get();
+                snapshot.docs.forEach((element) {
+                  if (element['id'] == "yntDFLuVbspzzKIDcpEI") {
+                    waterContent = element['elementContent'];
+                    waterContent.removeWhere((element) =>
+                        element['description'] == collectedDesc &&
+                        element['name'] == collectedTitle);
+                    _db.collection("elements").doc('yntDFLuVbspzzKIDcpEI').set({
+                      "categoryName": "water",
+                      "elementContent": FieldValue.arrayUnion(waterContent),
+                      "id": "yntDFLuVbspzzKIDcpEI"
+                    }).then((value) {
+                      AppDialog.showUpdateDialog(
+                        context: context,
+                        header: "Content has been updated",
+                        body: "Go back",
+                      );
+                    });
+                  }
+                });
+              });
+            }
+          });
+        }
+      });
+    } catch (e) {
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header: "Something went wrong 😞",
+        body: "Retry",
+      );
+      print(e.toString());
+    }
+  }
+
+  Future updateCrystalContent({
+    required BuildContext context,
+    required String collectedDesc,
+    required String collectedTitle,
+    required String categoryName,
+    required String categoryDesc,
+  }) async {
+    late List<dynamic> crystalContent;
+
+    // late List<dynamic> airContentSecondList;
+    try {
+      await _db
+          .collection("crystalOfTheMonth")
+          .doc('bldWgphVLGIk5cdBGmNv')
+          .get()
+          .then((value) {
+        crystalContent = value['content'];
+        crystalContent.forEach((element) {
+          if (element['desc'] == collectedDesc &&
+              element['title'] == collectedTitle) {
+            _db
+                .collection("crystalOfTheMonth")
+                .doc('bldWgphVLGIk5cdBGmNv')
+                .set({
+              "content": FieldValue.arrayUnion([
+                {"desc": categoryDesc, "title": categoryName, "sub": ''}
+              ])
+            }, SetOptions(merge: true)).then((value) async {
+              await _db
+                  .collection("crystalOfTheMonth")
+                  .doc('bldWgphVLGIk5cdBGmNv')
+                  .get()
+                  .then((value) {
+                crystalContent = value['content'];
+                crystalContent.removeWhere((element) =>
+                    element['desc'] == collectedDesc &&
+                    element['title'] == collectedTitle);
+              });
+              _db
+                  .collection("crystalOfTheMonth")
+                  .doc('bldWgphVLGIk5cdBGmNv')
+                  .set({
+                "content": FieldValue.arrayUnion(crystalContent),
+              }).then((value) {
+                AppDialog.showUpdateDialog(
+                  context: context,
+                  header: "Content has been updated",
+                  body: "Go back",
+                );
+              });
+            });
+          }
+        });
+      });
+    } catch (e) {
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header: "Something went wrong 😞",
+        body: "Retry",
+      );
+      print(e.toString());
+    }
+  }
+
+  //AUTHENTICATION SERVICE
+  Future<void> signInWithEmail(
+      String email, String password, BuildContext context) async {
+    try {
+      if (email.toLowerCase() == "admin@zenme.com" && password == "admin@1234") {
+        UserCredential userCredential = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(email: email, password: password)
+            .then((value) async {
+          Get.toNamed(Routes.dashboard);
+          // Navigator.pushAndRemoveUntil(
+          //     context,
+          //     MaterialPageRoute(builder: (ctx) => const DashboardScreen()),
+          //     (route) => false);
+          return value;
+        });
+      } else {
+        await Future.delayed(const Duration(seconds: 3), () {
+          AppDialog.showSuccessDialog(
+            lottie: 'oops.json',
+            context: context,
+            header: "Login details not recongized as an admin on the portal 😞",
+            body: "Go back",
+          );
+        });
+      }
+    } on FirebaseAuthException catch (e) {
+      print(e.toString());
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header: "${e.message} 😞",
+        body: "Go back",
+      );
+    } catch (e) {
+      print(e.toString());
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header:
+            "Something went wrong 😞 Kindly contact admin to assist with the issue",
+        body: "Go back",
+      );
+    }
+  }
+
+  //Sign out
+  Future<void> signOut(BuildContext context) {
+    return FirebaseAuth.instance.signOut().then((value) {
+      Get.toNamed(Routes.signIn);
+      // Navigator.pushAndRemoveUntil(
+      //     context,
+      //     MaterialPageRoute(builder: (ctx) => const SignIn()),
+      //     (route) => false);
+      cToast(msg: "Signed out", color: kPrimaryColor, context: context);
+    });
   }
 }

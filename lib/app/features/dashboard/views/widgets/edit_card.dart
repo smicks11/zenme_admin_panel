@@ -1,9 +1,14 @@
+import 'package:daily_task/app/features/dashboard/views/widgets/edit_content.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../utils/app_textstyle.dart';
+import '../../../../utils/big_primary_button.dart';
 import '../../../../utils/resources.dart';
+import '../../../../utils/textfield.dart';
+import '../screens/dashboard_screen.dart';
 
-class EditCard extends StatelessWidget {
+class EditCard extends GetView<DashboardController> {
   // EditCard({
   //   Key? key,
   //   required TextEditingController secondContent,
@@ -69,7 +74,7 @@ class EditCard extends StatelessWidget {
                             ) {
                               return AlertDialog(
                                 title: Text(
-                                  'Are you sure you wat to update content?',
+                                  'Are you sure you want to update content?',
                                   style: bodySmallText(context),
                                 ),
                                 shape: const RoundedRectangleBorder(
@@ -84,17 +89,17 @@ class EditCard extends StatelessWidget {
                                     child: const Text('UPDATE'),
                                     onPressed: () {
                                       Navigator.pop(context);
-                                      // Navigator.push(
-                                      //     context,
-                                      //     MaterialPageRoute(
-                                      //         builder: (ctx) =>
-                                      //             EditContentScreen(
-                                      //               category: category,
-                                      //               collectedDesc:
-                                      //                   secondContent,
-                                      //               collectedTitle:
-                                      //                   firstContent,
-                                      //             )));
+                                      // controller.showEditScreen(true);
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return EditContent(
+                                              controller: controller,
+                                              category: category,
+                                              collectedDesc: secondContent,
+                                              collectedTitle: firstContent,
+                                            );
+                                          });
                                       // try {
                                       //   showLoaderDialog(context: context, loadingText: "Updating...");
                                       //   homeController.updateRequestStatus(id).then((value) {
@@ -140,38 +145,31 @@ class EditCard extends StatelessWidget {
                           ) {
                             return AlertDialog(
                               title: Text(
-                                'Are you sure you wat to update content?',
+                                'Are you sure you want to update content?',
                                 style: bodySmallText(context),
                               ),
-                              shape: RoundedRectangleBorder(
+                              shape: const RoundedRectangleBorder(
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(14))),
                               actions: <Widget>[
                                 //flatbutton changed
                                 TextButton(
                                     onPressed: () => Navigator.pop(context),
-                                    child: Text('Go back')),
+                                    child: const Text('Go back')),
                                 TextButton(
-                                  child: Text('UPDATE'),
+                                  child: const Text('UPDATE'),
                                   onPressed: () {
                                     Navigator.pop(context);
-                                    // Navigator.push(
-                                    //     context,
-                                    //     MaterialPageRoute(
-                                    //         builder: (ctx) => EditContentScreen(
-                                    //               category: category,
-                                    //               collectedDesc: secondContent,
-                                    //               collectedTitle: firstContent,
-                                    //             )));
-                                    // try {
-                                    //   showLoaderDialog(context: context, loadingText: "Updating...");
-                                    //   homeController.updateRequestStatus(id).then((value) {
-                                    //     Navigator.pop(context);
-                                    //     Navigator.pop(context);
-
-                                    //   });
-
-                                    // } catch (err) {}
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return EditContent(
+                                            controller: controller,
+                                            category: category,
+                                            collectedDesc: secondContent,
+                                            collectedTitle: firstContent,
+                                          );
+                                        });
                                   },
                                 )
                               ],
@@ -187,7 +185,7 @@ class EditCard extends StatelessWidget {
                               fontWeight: FontWeight.bold),
                         ),
                         // kTinyHorizontalSpacing,
-                        Icon(
+                        const Icon(
                           Icons.edit,
                           color: kPrimaryColor,
                         )
@@ -283,4 +281,14 @@ class EditCard extends StatelessWidget {
       ),
     );
   }
+
+  // Widget _editDialog({
+  //   // Function()? onPressedMenu,
+  //   required BuildContext context,
+  //   required String category,
+  //   required String collectedDesc,
+  //   required String collectedTitle,
+  // }) {
+
+  // }
 }

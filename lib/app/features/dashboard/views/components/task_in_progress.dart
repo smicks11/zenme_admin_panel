@@ -1,12 +1,14 @@
 part of dashboard;
 
-class _TaskInProgress extends StatelessWidget {
+class _TaskInProgress extends GetView<DashboardController> {
   const _TaskInProgress({
     required this.data,
+    // required this.onSelected,
     Key? key,
   }) : super(key: key);
 
   final List<CardTaskData> data;
+  // final Function(int index, SelectionButtonData value) onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +23,15 @@ class _TaskInProgress extends StatelessWidget {
           itemCount: data.length,
           itemBuilder: (context, index) => Padding(
             padding: const EdgeInsets.symmetric(horizontal: kSpacing / 2),
-            child: CardTask(
-              data: data[index],
-              primary: _getSequenceColor(index),
-              onPrimary: Colors.white,
+            child: GestureDetector(
+              onTap: () {
+                controller.onSelectedHomeOptions(index);
+              },
+              child: CardTask(
+                data: data[index],
+                primary: _getSequenceColor(index),
+                onPrimary: Colors.white,
+              ),
             ),
           ),
         ),

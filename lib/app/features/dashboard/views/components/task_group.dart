@@ -9,7 +9,7 @@ class _TaskGroup extends StatelessWidget {
   }) : super(key: key);
 
   final String title;
-  final List<ListTaskDateData> data;
+  final List<UserModel> data;
   final Function(int index, ListTaskDateData data) onPressed;
 
   @override

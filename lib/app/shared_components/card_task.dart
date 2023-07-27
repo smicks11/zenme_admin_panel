@@ -32,55 +32,52 @@ class CardTask extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: Material(
-        child: InkWell(
-          onTap: () {},
-          child: Container(
-            width: 250,
-            height: 250,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [primary, primary.withOpacity(.7)],
-                begin: AlignmentDirectional.topCenter,
-                end: AlignmentDirectional.bottomCenter,
-              ),
+        child: Container(
+          width: 250,
+          height: 250,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [primary, primary.withOpacity(.7)],
+              begin: AlignmentDirectional.topCenter,
+              end: AlignmentDirectional.bottomCenter,
             ),
-            child: _BackgroundDecoration(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 120,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          _buildLabel(),
-                          const SizedBox(height: 20),
-                          _buildJobdesk(),
-                        ],
-                      ),
-                    ),
-                    const Spacer(flex: 1),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          ),
+          child: _BackgroundDecoration(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 120,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        _buildDate(),
-                        SizedBox(
-                          height: 20,
-                          child: VerticalDivider(
-                            thickness: 1,
-                            color: onPrimary,
-                          ),
-                        ),
-                        _buildHours(),
+                        _buildLabel(),
+                        const SizedBox(height: 20),
+                        _buildJobdesk(),
                       ],
                     ),
-                    const Spacer(flex: 2),
-                    _doneButton(),
-                  ],
-                ),
+                  ),
+                  const Spacer(flex: 1),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildDate(),
+                      SizedBox(
+                        height: 20,
+                        child: VerticalDivider(
+                          thickness: 1,
+                          color: onPrimary,
+                        ),
+                      ),
+                      _buildHours(),
+                    ],
+                  ),
+                  const Spacer(flex: 2),
+                  _doneButton(),
+                ],
               ),
             ),
           ),
@@ -127,16 +124,17 @@ class CardTask extends StatelessWidget {
     return _IconLabel(
       color: onPrimary,
       iconData: EvaIcons.calendarOutline,
-      label: DateFormat('d MMM').format(data.dueDate),
+      label: DateFormat.yMMMMEEEEd().format(DateTime.now()),
     );
   }
 
   Widget _buildHours() {
-    return _IconLabel(
-      color: onPrimary,
-      iconData: EvaIcons.clockOutline,
-      label: data.dueDate.dueDate(),
-    );
+    return SizedBox.shrink();
+    // return _IconLabel(
+    //   color: onPrimary,
+    //   iconData: EvaIcons.clockOutline,
+    //   label: data.dueDate.dueDate(),
+    // );
   }
 
   Widget _doneButton() {
@@ -146,8 +144,8 @@ class CardTask extends StatelessWidget {
         primary: onPrimary,
         onPrimary: primary,
       ),
-      icon: const Icon(EvaIcons.checkmarkCircle2Outline),
-      label: const Text("Done"),
+      icon: const Icon(EvaIcons.cloudUpload),
+      label: const Text("Update"),
     );
   }
 }

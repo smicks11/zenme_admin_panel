@@ -2,11 +2,15 @@
 
 library dashboard;
 
+import 'dart:io';
 import 'dart:js_interop';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:daily_task/app/config/model/user_model.dart';
+import 'package:daily_task/app/config/routes/app_pages.dart';
 import 'package:daily_task/app/constans/app_constants.dart';
+import 'package:daily_task/app/features/auth/sign_in.dart';
+import 'package:daily_task/app/features/dashboard/views/widgets/update_meditation.dart';
 import 'package:daily_task/app/shared_components/card_task.dart';
 import 'package:daily_task/app/shared_components/header_text.dart';
 import 'package:daily_task/app/shared_components/list_task_assigned.dart';
@@ -20,16 +24,20 @@ import 'package:daily_task/app/shared_components/task_progress.dart';
 import 'package:daily_task/app/shared_components/user_profile.dart';
 import 'package:daily_task/app/utils/ui/ui_utils.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../config/model/admin_model.dart';
 import '../../../../utils/app_colors.dart';
 import '../../../../utils/app_spacing.dart';
 import '../../../../utils/app_textstyle.dart';
+import '../../../../utils/snackbar.dart';
 import '../widgets/edit_card.dart';
 
 // binding
@@ -77,7 +85,7 @@ class DashboardScreen extends GetView<DashboardController> {
                   _buildTaskContent(
                     onPressedMenu: () => controller.openDrawer(),
                   ),
-                  _buildCalendarContent(),
+                  _buildCalendarContent(context),
                 ],
               ),
             );
@@ -103,7 +111,7 @@ class DashboardScreen extends GetView<DashboardController> {
                   flex: 4,
                   child: SingleChildScrollView(
                     controller: ScrollController(),
-                    child: _buildCalendarContent(),
+                    child: _buildCalendarContent(context),
                   ),
                 ),
               ],
@@ -137,14 +145,14 @@ class DashboardScreen extends GetView<DashboardController> {
                                 child: _buildUserContent(context: context),
                               ),
                             )
-                          : controller.screenControllerIndex.value == 4
+                          : controller.screenControllerIndex.value == 2
                               ? Flexible(
                                   flex: constraints.maxWidth > 1350 ? 10 : 9,
                                   child: SingleChildScrollView(
                                       controller: ScrollController(),
                                       child:
                                           _buildAirContent(context: context)))
-                              : controller.screenControllerIndex.value == 5
+                              : controller.screenControllerIndex.value == 3
                                   ? Flexible(
                                       flex:
                                           constraints.maxWidth > 1350 ? 10 : 9,
@@ -152,7 +160,7 @@ class DashboardScreen extends GetView<DashboardController> {
                                           controller: ScrollController(),
                                           child: _buildWaterContent(
                                               context: context)))
-                                  : controller.screenControllerIndex.value == 6
+                                  : controller.screenControllerIndex.value == 4
                                       ? Flexible(
                                           flex: constraints.maxWidth > 1350
                                               ? 10
@@ -163,7 +171,7 @@ class DashboardScreen extends GetView<DashboardController> {
                                                   context: context)))
                                       : controller.screenControllerIndex
                                                   .value ==
-                                              7
+                                              5
                                           ? Flexible(
                                               flex: constraints.maxWidth > 1350
                                                   ? 10
@@ -178,12 +186,19 @@ class DashboardScreen extends GetView<DashboardController> {
                                               flex: constraints.maxWidth > 1350
                                                   ? 10
                                                   : 9,
-                                              child:
-                                                  SingleChildScrollView(
-                                                      controller:
-                                                          ScrollController(),
-                                                      child: _buildFireContent(
-                                                          context: context))),
+                                              child: SizedBox(
+                                                child: Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                                Color>(
+                                                            kPrimaryColor),
+                                                    strokeWidth: 1,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                   SizedBox(
                     height: MediaQuery.of(context).size.height,
                     child: const VerticalDivider(),
@@ -192,7 +207,7 @@ class DashboardScreen extends GetView<DashboardController> {
                     flex: 4,
                     child: SingleChildScrollView(
                       controller: ScrollController(),
-                      child: _buildCalendarContent(),
+                      child: _buildCalendarContent(context),
                     ),
                   ),
                 ],
@@ -226,8 +241,8 @@ class DashboardScreen extends GetView<DashboardController> {
           endIndent: 20,
           height: 60,
         ),
-        _Member(member: controller.member),
-        const SizedBox(height: kSpacing),
+        // _Member(member: controller.member),
+        // const SizedBox(height: kSpacing),
         _TaskMenu(
           onSelected: controller.onSelectedTaskMenu,
         ),
@@ -516,9 +531,19 @@ class DashboardScreen extends GetView<DashboardController> {
         width: double.infinity,
         child: DataTable(
           columns: const [
-            DataColumn(label: Text('Name of User', style: TextStyle(fontWeight: FontWeight.bold),)),
-            DataColumn(label: Text('Email', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Registration Time', style: TextStyle(fontWeight: FontWeight.bold,))),
+            DataColumn(
+                label: Text(
+              'Name of User',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            )),
+            DataColumn(
+                label: Text('Email',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(
+                label: Text('Registration Time',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ))),
           ],
           rows: users.map((user) {
             return DataRow(
@@ -572,22 +597,136 @@ class DashboardScreen extends GetView<DashboardController> {
             ],
           ),
           const SizedBox(height: kSpacing),
-          _TaskInProgress(data: controller.taskInProgress),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(kBorderRadius * 2),
+            child: SizedBox(
+              height: 250,
+              child: ListView.builder(
+                shrinkWrap: true,
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: controller.taskInProgress.length,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: kSpacing / 2),
+                  child: InkResponse(
+                    onTap: () {
+                      if (index == 0) {
+                        showDialog(
+                            context: context,
+                            builder: (context) {
+                              return UpdateMeditation(controller: controller);
+                            });
+                      } else if (index == 1) {
+                        showDialog(
+                            context: context,
+                            builder: (
+                              context,
+                            ) {
+                              return AlertDialog(
+                                title: Text(
+                                  'Still in development',
+                                  style: bodySmallText(context),
+                                ),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(14))),
+                                actions: <Widget>[
+                                  //flatbutton changed
+                                  TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Go back')),
+                                ],
+                              );
+                            });
+                      } else if (index == 2) {
+                        showDialog(
+                            context: context,
+                            builder: (
+                              context,
+                            ) {
+                              return AlertDialog(
+                                title: Text(
+                                  'Still in development',
+                                  style: bodySmallText(context),
+                                ),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(14))),
+                                actions: <Widget>[
+                                  //flatbutton changed
+                                  TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Go back')),
+                                ],
+                              );
+                            });
+                      } else if (index == 3) {
+                        showDialog(
+                            context: context,
+                            builder: (
+                              context,
+                            ) {
+                              return AlertDialog(
+                                title: Text(
+                                  'Still in development',
+                                  style: bodySmallText(context),
+                                ),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(14))),
+                                actions: <Widget>[
+                                  //flatbutton changed
+                                  TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Go back')),
+                                ],
+                              );
+                            });
+                      }
+                      // print('tapped!!');
+                      // controller.onSelectedHomeOptions(index);
+                    },
+                    child: CardTask(
+                      data: controller.taskInProgress[index],
+                      primary: _getSequenceColor(index),
+                      onPrimary: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // _TaskInProgress(
+          //   data: controller.taskInProgress,
+          // ),
           const SizedBox(height: kSpacing * 2),
-          const _HeaderWeeklyTask(),
-          const SizedBox(height: kSpacing),
-          _WeeklyTask(
-            data: controller.weeklyTask,
-            onPressed: controller.onPressedTask,
-            onPressedAssign: controller.onPressedAssignTask,
-            onPressedMember: controller.onPressedMemberTask,
-          )
+          // const _HeaderWeeklyTask(),
+          // const SizedBox(height: kSpacing),
+          // _WeeklyTask(
+          //   data: controller.weeklyTask,
+          //   onPressed: controller.onPressedTask,
+          //   onPressedAssign: controller.onPressedAssignTask,
+          //   onPressedMember: controller.onPressedMemberTask,
+          // )
         ],
       ),
     );
   }
 
-  Widget _buildCalendarContent() {
+  Color _getSequenceColor(int index) {
+    int val = index % 4;
+    if (val == 3) {
+      return Colors.indigo;
+    } else if (val == 2) {
+      return Colors.grey;
+    } else if (val == 1) {
+      return Colors.redAccent;
+    } else {
+      return Colors.lightBlue;
+    }
+  }
+
+  Widget _buildCalendarContent(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: kSpacing),
       child: Column(
@@ -595,27 +734,52 @@ class DashboardScreen extends GetView<DashboardController> {
           const SizedBox(height: kSpacing),
           Row(
             children: [
-              const Expanded(child: HeaderText("Calendar")),
+              const Expanded(child: HeaderText("Users")),
               IconButton(
                 onPressed: controller.onPressedCalendar,
-                icon: const Icon(EvaIcons.calendarOutline),
-                tooltip: "calendar",
+                icon: const Icon(EvaIcons.people),
+                tooltip: "users",
               )
             ],
           ),
           const SizedBox(height: kSpacing),
-          ...controller.taskGroup
-              .map(
-                (e) => _TaskGroup(
-                  title: DateFormat('d MMMM').format(e[0].date),
-                  data: e,
-                  onPressed: controller.onPressedTaskGroup,
-                ),
-              )
-              .toList()
+          FutureBuilder<List<UserModel>>(
+              future: controller.getUsersFromDb(context: context),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                  return _TaskGroup(
+                    title: 'Total users: ${snapshot.data!.length}',
+                    data: snapshot.data!,
+                    onPressed: controller.onPressedTaskGroup,
+                  );
+                } else if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return Center(
+                    child: const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
+                      strokeWidth: 1,
+                    ),
+                  );
+                } else {
+                  return Center(
+                    child: Text(
+                      'Somethinng went wrong',
+                      style: bodySmallText(context),
+                    ),
+                  );
+                }
+              })
+          // ...controller.taskGroup
+          //     .map(
+          //       (e) => _TaskGroup(
+          //         title: DateFormat('d MMMM').format(e[0].date),
+          //         data: e,
+          //         onPressed: controller.onPressedTaskGroup,
+          //       ),
+          //     )
+          //     .toList()
         ],
       ),
     );
   }
 }
-

@@ -1,3 +1,4 @@
+import 'package:daily_task/app/config/model/user_model.dart';
 import 'package:daily_task/app/constans/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -22,7 +23,7 @@ class ListTaskDate extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  final ListTaskDateData data;
+  final UserModel data;
   final Function() onPressed;
   final Color? dividerColor;
 
@@ -57,11 +58,12 @@ class ListTaskDate extends StatelessWidget {
   }
 
   Widget _buildHours() {
+    final DateFormat formatter = DateFormat('hh:mm a');
     return Text(
-      DateFormat.Hm().format(data.date),
+      formatter.format(data.regTime),
       style: const TextStyle(
         fontWeight: FontWeight.bold,
-        fontSize: 16,
+        fontSize: 12,
       ),
     );
   }
@@ -86,7 +88,7 @@ class ListTaskDate extends StatelessWidget {
 
   Widget _buildTitle() {
     return Text(
-      data.jobdesk,
+      data.email,
       maxLines: 1,
       style: const TextStyle(
         fontSize: 12,
@@ -98,7 +100,7 @@ class ListTaskDate extends StatelessWidget {
 
   Widget _buildSubtitle() {
     return Text(
-      data.label,
+      '${data.fName} ${data.lName}',
       maxLines: 1,
       style: const TextStyle(fontWeight: FontWeight.w600),
       overflow: TextOverflow.ellipsis,

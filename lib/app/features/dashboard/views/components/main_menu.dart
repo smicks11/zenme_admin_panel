@@ -23,17 +23,17 @@ class _MainMenu extends StatelessWidget {
           label: "Manage Users",
           totalNotif: 100,
         ),
-        SelectionButtonData(
-          activeIcon: EvaIcons.globe2,
-          icon: EvaIcons.globe2Outline,
-          label: "Community",
-          totalNotif: 20,
-        ),
-        SelectionButtonData(
-          activeIcon: EvaIcons.upload,
-          icon: EvaIcons.uploadOutline,
-          label: "Upload Quotes",
-        ),
+        // SelectionButtonData(
+        //   activeIcon: EvaIcons.globe2,
+        //   icon: EvaIcons.globe2Outline,
+        //   label: "Community",
+        //   totalNotif: 20,
+        // ),
+        // SelectionButtonData(
+        //   activeIcon: EvaIcons.upload,
+        //   icon: EvaIcons.uploadOutline,
+        //   label: "Upload Quotes",
+        // ),
         SelectionButtonData(
           activeIcon: EvaIcons.sun,
           icon: EvaIcons.sunOutline,

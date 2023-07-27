@@ -13,7 +13,6 @@ class _TaskMenu extends StatelessWidget {
     return SimpleSelectionButton(
       data: const [
         "TaleenSofee Website",
-        "Podcast",
         "Shop",
         "Book to read",
       ],
