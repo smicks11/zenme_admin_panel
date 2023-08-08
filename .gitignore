@@ -29,10 +29,18 @@
 .packages
 .pub-cache/
 .pub/
-/build/
+**/build/
+**/ios/Pods/
+**/android/build/
+**/.dart_tool/
+**/.idea/
+**/.vscode/
+**/.packages
+**/*.iml
+**/test/**/*.dart
+# /build/
 
 # Web related
-lib/generated_plugin_registrant.dart
 
 # Symbolication related
 app.*.symbols

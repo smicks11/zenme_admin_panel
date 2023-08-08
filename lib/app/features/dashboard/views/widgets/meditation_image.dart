@@ -7,9 +7,9 @@ import '../../../../utils/snackbar.dart';
 import '../../../../utils/textfield.dart';
 import '../screens/dashboard_screen.dart';
 
-class UpdateMeditation extends StatelessWidget {
+class UpdateMeditationImage extends StatelessWidget {
   final DashboardController controller;
-  const UpdateMeditation({
+  const UpdateMeditationImage({
     Key? key,
     required this.controller,
   }) : super(key: key);
@@ -20,7 +20,7 @@ class UpdateMeditation extends StatelessWidget {
       return AlertDialog(
         title: Center(
           child: Text(
-            'Update Meditation Of The Month',
+            'Update Meditation Of The Month Image',
             style: heading1(context),
           ),
         ),
@@ -42,37 +42,6 @@ class UpdateMeditation extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomTextBox(
-                      textInputAction: TextInputAction.next,
-                      keyType: TextInputType.text,
-                      controller: controller.updateMedcategoryName,
-                      hintText: "Enter Title",
-                      func: () {},
-                      minLines: null,
-                      validator: (value) {
-                        if (value!.length < 3) {
-                          return 'This field is required';
-                        } else {
-                          return null;
-                        }
-                      },
-                    ),
-                    kLargeVerticalSpacing,
-                    CustomTextBox(
-                      textInputAction: TextInputAction.done,
-                      keyType: TextInputType.text,
-                      controller: controller.updateMedcategoryDesc,
-                      hintText: "Enter Description",
-                      func: () {},
-                      minLines: 6,
-                      validator: (value) {
-                        if (value!.length < 3) {
-                          return 'This field is required';
-                        } else {
-                          return null;
-                        }
-                      },
-                    ),
                     kLargeVerticalSpacing,
                     Row(
                       children: [
@@ -102,13 +71,15 @@ class UpdateMeditation extends StatelessWidget {
                             // });
                           },
                           child: Container(
+                            height: 70,
+                            width: 70,
                             padding: EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: kPrimaryColor,
-                              shape: BoxShape.circle,
-                            ),
+                                color: kPrimaryColor,
+                                border: Border.all(
+                                    style: BorderStyle.solid, width: .7)),
                             child: Icon(
-                              Icons.add,
+                              Icons.cloud_upload,
                               color: kWhiteColor,
                               size: 40,
                             ),
@@ -128,60 +99,6 @@ class UpdateMeditation extends StatelessWidget {
                       ],
                     ),
                     kLargeVerticalSpacing,
-                    Row(
-                      children: [
-                        InkWell(
-                          onTap: () async {
-                            final results = await FilePicker.platform.pickFiles(
-                              allowMultiple: false,
-                              type: FileType.custom,
-                              // allowedExtensions: ['jpg', 'png', 'jpeg'],
-                              allowedExtensions: ['mp3', 'mp4'],
-                            );
-
-                            if (results == null) {
-                              cToast(
-                                  msg: "No file selected.",
-                                  color: kErrorColor,
-                                  context: context);
-                            }
-
-                            final PlatformFile file = results!.files.first;
-
-                            controller.getSelectedAudioFile(
-                                file.bytes!, setState);
-                            controller.getDummySelectedAudioFile(
-                                file, setState);
-                            // setState(() {
-                            //   _selectedMusicFiles = results?.files.first;
-                            // });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: const BoxDecoration(
-                              color: kPrimaryColor,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: kWhiteColor,
-                              size: 40,
-                            ),
-                          ),
-                        ),
-                        kMediumHorizontalSpacing,
-                        Expanded(
-                            child: Text(
-                          controller.dummyselectedAudioFiles?.value != null &&
-                                  controller.dummyselectedAudioFiles?.value
-                                          .name !=
-                                      ""
-                              ? controller.dummyselectedAudioFiles!.value.name
-                              : "Upload audio",
-                          style: bodySmallText(context),
-                        ))
-                      ],
-                    ),
                   ],
                 )),
             kLargeVerticalSpacing,
@@ -210,9 +127,7 @@ class UpdateMeditation extends StatelessWidget {
                       ),
                 textColor: kWhiteColor,
                 press: () async {
-                  if (controller.updateMedformKey.currentState!.validate() &&
-                      controller.selectedImageFiles?.value != null &&
-                      controller.selectedMusicFiles?.value != null) {
+                  if (controller.selectedImageFiles?.value != null) {
                     setState(() {
                       controller.updateMedLoadingState.value = true;
                     });
@@ -222,24 +137,11 @@ class UpdateMeditation extends StatelessWidget {
                             fileName:
                                 controller.dummyselectedImageFiles!.value.name)
                         .then((image) async {
-                      await controller
-                          .uploadImage(
-                              whichFile: controller.selectedMusicFiles!.value,
-                              fileName: controller
-                                  .dummyselectedAudioFiles!.value.name)
-                          .then((audio) async {
-                        await Future.value(
-                            controller.updateMeditationnOfTheMonth(
-                                audioLink: audio,
-                                imageLink: image,
-                                context: context,
-                                collectDesc: controller
-                                    .updateMedcategoryDesc.text
-                                    .trim(),
-                                collectTitle: controller
-                                    .updateMedcategoryName.text
-                                    .trim()));
-                      });
+                      await Future.value(
+                          controller.updateMeditationOfTheMonthImage(
+                        collectImage: image,
+                        context: context,
+                      ));
                     });
 
                     setState(() {
@@ -247,7 +149,7 @@ class UpdateMeditation extends StatelessWidget {
                     });
                   } else {
                     cToast(
-                        msg: 'Kindly upload all required data',
+                        msg: 'Kindly upload required data',
                         color: kErrorColor,
                         context: context);
                   }

@@ -1,8 +1,9 @@
 class CrystalContentModel {
   final String name;
   final String description;
+  final String subName;
 
-  CrystalContentModel({required this.name, required this.description});
+  CrystalContentModel({required this.name, required this.description, required this.subName});
 }
 class AirContentModel {
   final String name;

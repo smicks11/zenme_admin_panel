@@ -177,16 +177,16 @@ class EditContent extends StatelessWidget {
                                           controller
                                               .changeEditLoadingState(true);
 
-                                          await Future.value(controller
-                                            ..updateCrystalContent(
-                                              context: context,
-                                              collectedDesc: collectedDesc,
-                                              collectedTitle: collectedTitle,
-                                              categoryDesc:
-                                                  controller.categoryDesc.text,
-                                              categoryName:
-                                                  controller.categoryName.text,
-                                            ));
+                                          // await Future.value(controller
+                                          //   ..updateCrystalContent(
+                                          //     context: context,
+                                          //     collectedDesc: collectedDesc,
+                                          //     collectedTitle: collectedTitle,
+                                          //     categoryDesc:
+                                          //         controller.categoryDesc.text,
+                                          //     categoryName:
+                                          //         controller.categoryName.text,
+                                          //   ));
                                           controller
                                               .changeEditLoadingState(false);
                                         }

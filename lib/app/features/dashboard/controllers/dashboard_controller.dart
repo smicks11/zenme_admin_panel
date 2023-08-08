@@ -11,6 +11,7 @@ class DashboardController extends GetxController {
   final updateMedformKey = GlobalKey<FormState>();
   Rx<bool> obserText = true.obs;
   Rx<bool> authLoad = false.obs;
+  BuildContext? context;
 
   Rx<Uint8List>? selectedImageFiles = Uint8List(0).obs;
   Rx<Uint8List>? selectedMusicFiles = Uint8List(0).obs;
@@ -23,7 +24,7 @@ class DashboardController extends GetxController {
   // Rx<PlatformFile>? selectedMusicFiles = PlatformFile(name: '', size: 0).obs;
 
   changeAuthLoad(bool value, StateSetter setState) {
-    setState((){
+    setState(() {
       authLoad.value = value;
     });
   }
@@ -59,6 +60,10 @@ class DashboardController extends GetxController {
 
   final TextEditingController updateMedcategoryName = TextEditingController();
   final TextEditingController updateMedcategoryDesc = TextEditingController();
+
+  final TextEditingController crystalTitle = TextEditingController();
+  final TextEditingController crystalSub = TextEditingController();
+  final TextEditingController crystalDesc = TextEditingController();
   RxBool updateMedLoadingState = false.obs;
   RxBool editLoadingState = false.obs;
   RxBool showEditScreenVariable = false.obs;
@@ -125,7 +130,8 @@ class DashboardController extends GetxController {
   }
 
   final dataProfil = const UserProfileData(
-    image: NetworkImage("https://static.wixstatic.com/media/720907_4e588a93a1234b89b5ed3ae1d69395ce~mv2.jpg/v1/crop/x_0,y_22,w_1242,h_1231/fill/w_686,h_680,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/head%20shot%202_JPG.jpg"),
+    image: NetworkImage(
+        "https://static.wixstatic.com/media/720907_4e588a93a1234b89b5ed3ae1d69395ce~mv2.jpg/v1/crop/x_0,y_22,w_1242,h_1231/fill/w_686,h_680,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/head%20shot%202_JPG.jpg"),
     name: "Taleen Sofee",
     jobDesk: "Admin",
   );
@@ -159,7 +165,7 @@ class DashboardController extends GetxController {
       dueDate: DateTime.now().add(const Duration(days: 2)),
     ),
     CardTaskData(
-      label: "Update Quote",
+      label: "Update Meditation of the month image",
       jobDesk: "Admin",
       dueDate: DateTime.now().add(const Duration(minutes: 50)),
     )
@@ -244,7 +250,12 @@ class DashboardController extends GetxController {
   void onPressedProfil() {}
 
   void onSelectedMainMenu(int index, SelectionButtonData value) {
-    screenControllerIndex.value = index;
+    if(index == 6){
+      signOut();
+    }else{
+      screenControllerIndex.value = index;
+    }
+
   }
 
   void onSelectedHomeOptions(int index) {
@@ -428,6 +439,40 @@ class DashboardController extends GetxController {
     }
 
     return fireModelList;
+  }
+
+  Future<List<CrystalContentModel>> getCrystalContentsFromDb(
+      {required BuildContext context}) async {
+    late List<dynamic> crystalContent;
+
+    List<CrystalContentModel> crystalModelList = [];
+    try {
+      await _db
+          .collection("crystalOfTheMonth")
+          .doc('bldWgphVLGIk5cdBGmNv')
+          .get()
+          .then((value) {
+        crystalContent = value['content'];
+
+        crystalContent.forEach((element) {
+          CrystalContentModel crystalContentModel = CrystalContentModel(
+              name: element['title'],
+              subName: element['sub'],
+              description: element['desc']);
+          crystalModelList.add(crystalContentModel);
+        });
+      });
+    } catch (e) {
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header: "Something went wrong 😞",
+        body: "Retry",
+      );
+      print(e.toString());
+    }
+
+    return crystalModelList;
   }
 
   //Users
@@ -710,60 +755,137 @@ class DashboardController extends GetxController {
     }
   }
 
-  Future updateCrystalContent({
+  Future<void> updateCrystalOfTheMonth({
     required BuildContext context,
-    required String collectedDesc,
-    required String collectedTitle,
-    required String categoryName,
-    required String categoryDesc,
+    required String collectSub,
+    required String collectDesc,
+    required String collectTitle,
+    required int indexToUpdate, // Default index is 0
   }) async {
-    late List<dynamic> crystalContent;
-
-    // late List<dynamic> airContentSecondList;
     try {
-      await _db
-          .collection("crystalOfTheMonth")
-          .doc('bldWgphVLGIk5cdBGmNv')
-          .get()
-          .then((value) {
-        crystalContent = value['content'];
-        crystalContent.forEach((element) {
-          if (element['desc'] == collectedDesc &&
-              element['title'] == collectedTitle) {
-            _db
-                .collection("crystalOfTheMonth")
-                .doc('bldWgphVLGIk5cdBGmNv')
-                .set({
-              "content": FieldValue.arrayUnion([
-                {"desc": categoryDesc, "title": categoryName, "sub": ''}
-              ])
-            }, SetOptions(merge: true)).then((value) async {
-              await _db
-                  .collection("crystalOfTheMonth")
-                  .doc('bldWgphVLGIk5cdBGmNv')
-                  .get()
-                  .then((value) {
-                crystalContent = value['content'];
-                crystalContent.removeWhere((element) =>
-                    element['desc'] == collectedDesc &&
-                    element['title'] == collectedTitle);
-              });
-              _db
-                  .collection("crystalOfTheMonth")
-                  .doc('bldWgphVLGIk5cdBGmNv')
-                  .set({
-                "content": FieldValue.arrayUnion(crystalContent),
-              }).then((value) {
-                AppDialog.showUpdateDialog(
-                  context: context,
-                  header: "Content has been updated",
-                  body: "Go back",
-                );
-              });
-            });
-          }
-        });
-      });
+      DocumentReference docRef =
+          _db.collection("crystalOfTheMonth").doc('bldWgphVLGIk5cdBGmNv');
+
+      DocumentSnapshot snapshot = await docRef.get();
+      List<dynamic> contentList = snapshot.get("content");
+
+      if (indexToUpdate >= 0 && indexToUpdate < contentList.length) {
+        contentList[indexToUpdate] = {
+          "desc": collectDesc,
+          "title": collectTitle,
+          "sub": collectSub,
+        };
+
+        await docRef.update({"content": contentList});
+
+        AppDialog.showSuccessDialog(
+          lottie: '64787-success.json',
+          context: context,
+          header: "Crystal of the month updated",
+          body: "Ride on",
+        );
+      } else {
+        AppDialog.showSuccessDialog(
+          lottie: 'oops.json',
+          context: context,
+          header: "Invalid index",
+          body: "Retry with a valid index",
+        );
+      }
+    } catch (e) {
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header: "Something went wrong 😞",
+        body: "Retry",
+      );
+      print(e.toString());
+    }
+  }
+  Future<void> updateCrystalOfTheMonthImage({
+    required BuildContext context,
+    required String collectImage,
+    int indexToUpdate = 1, // Default index is 0
+
+  }) async {
+    try {
+      DocumentReference docRef =
+          _db.collection("homeOptions").doc('dHQkLgdjngdTrUVtN4y1');
+
+      DocumentSnapshot snapshot = await docRef.get();
+      List<dynamic> contentList = snapshot.get("options");
+
+      if (indexToUpdate >= 0 && indexToUpdate < contentList.length) {
+        contentList[indexToUpdate] = {
+          "buttonText": 'CLICK HERE',
+          "dummy": "",
+          "image": collectImage,
+          "title": "Crystal of the month",
+        };
+
+        await docRef.update({"options": contentList});
+
+        AppDialog.showSuccessDialog(
+          lottie: '64787-success.json',
+          context: context,
+          header: "Crystal of the month image updated",
+          body: "Ride on",
+        );
+      } else {
+        AppDialog.showSuccessDialog(
+          lottie: 'oops.json',
+          context: context,
+          header: "Invalid index",
+          body: "Retry with a valid index",
+        );
+      }
+    } catch (e) {
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header: "Something went wrong 😞",
+        body: "Retry",
+      );
+      print(e.toString());
+    }
+  }
+  Future<void> updateMeditationOfTheMonthImage({
+    required BuildContext context,
+    required String collectImage,
+    int indexToUpdate = 0, // Default index is 0
+
+  }) async {
+    try {
+      DocumentReference docRef =
+          _db.collection("homeOptions").doc('dHQkLgdjngdTrUVtN4y1');
+
+      DocumentSnapshot snapshot = await docRef.get();
+      List<dynamic> contentList = snapshot.get("options");
+
+      if (indexToUpdate >= 0 && indexToUpdate < contentList.length) {
+        contentList[indexToUpdate] = {
+          "buttonText": 'CLICK HERE',
+          "dummy": "",
+          "image": collectImage,
+          "title": "Meditation of the month",
+        };
+
+        await docRef.update({"options": contentList});
+
+        AppDialog.showSuccessDialog(
+          lottie: '64787-success.json',
+          context: context,
+          header: "Meditation of the month image updated",
+          body: "Ride on",
+        );
+      } else {
+        AppDialog.showSuccessDialog(
+          lottie: 'oops.json',
+          context: context,
+          header: "Invalid index",
+          body: "Retry with a valid index",
+        );
+      }
     } catch (e) {
       AppDialog.showSuccessDialog(
         lottie: 'oops.json',
@@ -779,7 +901,8 @@ class DashboardController extends GetxController {
   Future<void> signInWithEmail(
       String email, String password, BuildContext context) async {
     try {
-      if (email.toLowerCase() == "admin@zenme.com" && password == "admin@1234") {
+      if (email.toLowerCase() == "admin@zenme.com" &&
+          password == "admin@1234") {
         UserCredential userCredential = await FirebaseAuth.instance
             .signInWithEmailAndPassword(email: email, password: password)
             .then((value) async {
@@ -821,14 +944,14 @@ class DashboardController extends GetxController {
   }
 
   //Sign out
-  Future<void> signOut(BuildContext context) {
+  Future<void> signOut() {
     return FirebaseAuth.instance.signOut().then((value) {
-      Get.toNamed(Routes.signIn);
+      Get.offAndToNamed(Routes.signIn);
       // Navigator.pushAndRemoveUntil(
       //     context,
       //     MaterialPageRoute(builder: (ctx) => const SignIn()),
       //     (route) => false);
-      cToast(msg: "Signed out", color: kPrimaryColor, context: context);
+      // cToast(msg: "Signed out", color: kPrimaryColor, context: context);
     });
   }
 }

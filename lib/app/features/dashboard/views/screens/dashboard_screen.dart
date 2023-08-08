@@ -10,6 +10,7 @@ import 'package:daily_task/app/config/model/user_model.dart';
 import 'package:daily_task/app/config/routes/app_pages.dart';
 import 'package:daily_task/app/constans/app_constants.dart';
 import 'package:daily_task/app/features/auth/sign_in.dart';
+import 'package:daily_task/app/features/dashboard/views/widgets/edit_crystal.dart';
 import 'package:daily_task/app/features/dashboard/views/widgets/update_meditation.dart';
 import 'package:daily_task/app/shared_components/card_task.dart';
 import 'package:daily_task/app/shared_components/header_text.dart';
@@ -38,7 +39,9 @@ import '../../../../utils/app_colors.dart';
 import '../../../../utils/app_spacing.dart';
 import '../../../../utils/app_textstyle.dart';
 import '../../../../utils/snackbar.dart';
+import '../widgets/crystal_image.dart';
 import '../widgets/edit_card.dart';
+import '../widgets/meditation_image.dart';
 
 // binding
 part '../../bindings/dashboard_binding.dart';
@@ -479,6 +482,62 @@ class DashboardScreen extends GetView<DashboardController> {
     );
   }
 
+  Widget _buildCrystalOfTheMonth(
+      {Function()? onPressedMenu, required BuildContext context}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: kSpacing),
+      child: ListView(
+        children: [
+          const SizedBox(height: kSpacing),
+          // Text('Update crystal of the month',
+          //     style: bodyNormalText(context).copyWith(
+          //         fontSize: 20,
+          //         fontWeight: FontWeight.bold,
+          //         color: kPrimaryColor)),
+          // kTinyVerticalSpacing,
+          // Text(
+          //   'Update crystal of the month section',
+          //   style: bodySmallText(context).copyWith(color: Colors.black38),
+          // ),
+          // kLargeVerticalSpacing,
+          FutureBuilder<List<CrystalContentModel>>(
+              future: controller.getCrystalContentsFromDb(context: context),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                  return ListView.builder(
+                      itemCount: snapshot.data?.length,
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (_, index) {
+                        return EditCrystal(
+                            index: index,
+                            subTitle: snapshot.data![index].subName,
+                            desc: snapshot.data![index].description,
+                            title: snapshot.data![index].name);
+                      });
+                } else if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return Center(
+                    child: const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
+                      strokeWidth: 1,
+                    ),
+                  );
+                } else {
+                  return Center(
+                    child: Text(
+                      'Somethinng went wrong',
+                      style: bodySmallText(context),
+                    ),
+                  );
+                }
+              })
+        ],
+      ),
+    );
+  }
+
   Widget _buildUserContent(
       {Function()? onPressedMenu, required BuildContext context}) {
     return Padding(
@@ -622,66 +681,62 @@ class DashboardScreen extends GetView<DashboardController> {
                             builder: (
                               context,
                             ) {
-                              return AlertDialog(
-                                title: Text(
-                                  'Still in development',
-                                  style: bodySmallText(context),
-                                ),
-                                shape: const RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(14))),
-                                actions: <Widget>[
-                                  //flatbutton changed
-                                  TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Go back')),
-                                ],
-                              );
+                              return _buildCrystalOfTheMonth(context: context);
                             });
                       } else if (index == 2) {
                         showDialog(
                             context: context,
-                            builder: (
-                              context,
-                            ) {
-                              return AlertDialog(
-                                title: Text(
-                                  'Still in development',
-                                  style: bodySmallText(context),
-                                ),
-                                shape: const RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(14))),
-                                actions: <Widget>[
-                                  //flatbutton changed
-                                  TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Go back')),
-                                ],
-                              );
+                            builder: (context) {
+                              return UpdateCrystalImage(controller: controller);
                             });
+                        // showDialog(
+                        //     context: context,
+                        //     builder: (
+                        //       context,
+                        //     ) {
+                        //       return AlertDialog(
+                        //         title: Text(
+                        //           'Still in development',
+                        //           style: bodySmallText(context),
+                        //         ),
+                        //         shape: const RoundedRectangleBorder(
+                        //             borderRadius:
+                        //                 BorderRadius.all(Radius.circular(14))),
+                        //         actions: <Widget>[
+                        //           //flatbutton changed
+                        //           TextButton(
+                        //               onPressed: () => Navigator.pop(context),
+                        //               child: const Text('Go back')),
+                        //         ],
+                        //       );
+                        //     });
                       } else if (index == 3) {
-                        showDialog(
+                         showDialog(
                             context: context,
-                            builder: (
-                              context,
-                            ) {
-                              return AlertDialog(
-                                title: Text(
-                                  'Still in development',
-                                  style: bodySmallText(context),
-                                ),
-                                shape: const RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(14))),
-                                actions: <Widget>[
-                                  //flatbutton changed
-                                  TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Go back')),
-                                ],
-                              );
+                            builder: (context) {
+                              return UpdateMeditationImage(controller: controller);
                             });
+                        // showDialog(
+                        //     context: context,
+                        //     builder: (
+                        //       context,
+                        //     ) {
+                        //       return AlertDialog(
+                        //         title: Text(
+                        //           'Still in development',
+                        //           style: bodySmallText(context),
+                        //         ),
+                        //         shape: const RoundedRectangleBorder(
+                        //             borderRadius:
+                        //                 BorderRadius.all(Radius.circular(14))),
+                        //         actions: <Widget>[
+                        //           //flatbutton changed
+                        //           TextButton(
+                        //               onPressed: () => Navigator.pop(context),
+                        //               child: const Text('Go back')),
+                        //         ],
+                        //       );
+                        //     });
                       }
                       // print('tapped!!');
                       // controller.onSelectedHomeOptions(index);
