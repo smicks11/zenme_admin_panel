@@ -584,7 +584,7 @@ class DashboardScreen extends GetView<DashboardController> {
                           TextButton(
                             child: const Text('UPDATE'),
                             onPressed: () {
-                              Navigator.pop(context);
+                              // Navigator.pop(context);
                               controller.updateQuotesList(
                                   controller.chipItems, context);
                             },
