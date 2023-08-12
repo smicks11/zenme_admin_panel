@@ -554,8 +554,46 @@ class DashboardScreen extends GetView<DashboardController> {
           ),
           kLargeVerticalSpacing,
           ElevatedButton(
-            onPressed: () =>
-                controller.updateQuotesList(controller.chipItems, context),
+            onPressed: () {
+              if (controller.chipItems.isEmpty) {
+                AppDialog.showSuccessDialog(
+                  lottie: 'oops.json',
+                  context: context,
+                  header: "You are yet to add a quote",
+                  body: "Retry",
+                );
+              } else {
+                showDialog(
+                    context: context,
+                    builder: (
+                      context,
+                    ) {
+                      return AlertDialog(
+                        title: Text(
+                          'Are you sure you want to update quote? This will clear all exisiting quote',
+                          style: bodySmallText(context),
+                        ),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(14))),
+                        actions: <Widget>[
+                          //flatbutton changed
+                          TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Go back')),
+                          TextButton(
+                            child: const Text('UPDATE'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              controller.updateQuotesList(
+                                  controller.chipItems, context);
+                            },
+                          )
+                        ],
+                      );
+                    });
+              }
+            },
             child: Text(controller.editLoadingState.value == true
                 ? 'Processing...'
                 : 'Update quote'),
