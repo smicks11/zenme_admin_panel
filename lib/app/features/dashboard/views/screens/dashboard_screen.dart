@@ -153,12 +153,13 @@ class DashboardScreen extends GetView<DashboardController> {
                                   flex: constraints.maxWidth > 1350 ? 10 : 9,
                                   child: SingleChildScrollView(
                                       controller: ScrollController(),
-                                      child:
-                                          _buildAirContent(context: context)))
+                                      child: _buildAirContent(
+                                          context: context)))
                               : controller.screenControllerIndex.value == 3
                                   ? Flexible(
-                                      flex:
-                                          constraints.maxWidth > 1350 ? 10 : 9,
+                                      flex: constraints.maxWidth > 1350
+                                          ? 10
+                                          : 9,
                                       child: SingleChildScrollView(
                                           controller: ScrollController(),
                                           child: _buildWaterContent(
@@ -185,23 +186,39 @@ class DashboardScreen extends GetView<DashboardController> {
                                                           ScrollController(),
                                                       child: _buildFireContent(
                                                           context: context)))
-                                          : Flexible(
-                                              flex: constraints.maxWidth > 1350
-                                                  ? 10
-                                                  : 9,
-                                              child: SizedBox(
-                                                child: Center(
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    valueColor:
-                                                        AlwaysStoppedAnimation<
-                                                                Color>(
-                                                            kPrimaryColor),
-                                                    strokeWidth: 1,
+                                          : controller.screenControllerIndex
+                                                      .value ==
+                                                  6
+                                              ? Flexible(
+                                                  flex:
+                                                      constraints
+                                                                  .maxWidth >
+                                                              1350
+                                                          ? 10
+                                                          : 9,
+                                                  child: SingleChildScrollView(
+                                                      controller:
+                                                          ScrollController(),
+                                                      child: _buildQuoteContent(
+                                                          context: context)))
+                                              : Flexible(
+                                                  flex: constraints.maxWidth >
+                                                          1350
+                                                      ? 10
+                                                      : 9,
+                                                  child: SizedBox(
+                                                    child: Center(
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        valueColor:
+                                                            AlwaysStoppedAnimation<
+                                                                    Color>(
+                                                                kPrimaryColor),
+                                                        strokeWidth: 1,
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            ),
                   SizedBox(
                     height: MediaQuery.of(context).size.height,
                     child: const VerticalDivider(),
@@ -482,6 +499,72 @@ class DashboardScreen extends GetView<DashboardController> {
     );
   }
 
+  Widget _buildQuoteContent(
+      {Function()? onPressedMenu, required BuildContext context}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: kSpacing),
+      child: Column(
+        children: [
+          const SizedBox(height: kSpacing),
+          Text('Update Quote',
+              style: bodyNormalText(context).copyWith(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: kPrimaryColor)),
+          kTinyVerticalSpacing,
+          Text(
+            'Kindly note that add new set of quote will override existing quotes on the system',
+            style: bodySmallText(context).copyWith(color: Colors.black38),
+          ),
+          kLargeVerticalSpacing,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: controller.chipItems.map((item) {
+                return Container(
+                  margin: EdgeInsets.only(right: 8),
+                  child: Chip(
+                    label: Row(
+                      children: [
+                        Text(item),
+                        SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () => controller.removeItem(item),
+                          child: Icon(Icons.clear, size: 16),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.red.withOpacity(0.2),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          kLargeVerticalSpacing,
+          TextField(
+            controller: controller.textController,
+            decoration: InputDecoration(
+              hintText: 'Enter a quote',
+              suffixIcon: IconButton(
+                onPressed: controller.addItem,
+                icon: Icon(Icons.send),
+              ),
+            ),
+            onSubmitted: (_) => controller.addItem(),
+          ),
+          kLargeVerticalSpacing,
+          ElevatedButton(
+            onPressed: () =>
+                controller.updateQuotesList(controller.chipItems, context),
+            child: Text(controller.editLoadingState.value == true
+                ? 'Processing...'
+                : 'Update quote'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCrystalOfTheMonth(
       {Function()? onPressedMenu, required BuildContext context}) {
     return Padding(
@@ -711,10 +794,11 @@ class DashboardScreen extends GetView<DashboardController> {
                         //       );
                         //     });
                       } else if (index == 3) {
-                         showDialog(
+                        showDialog(
                             context: context,
                             builder: (context) {
-                              return UpdateMeditationImage(controller: controller);
+                              return UpdateMeditationImage(
+                                  controller: controller);
                             });
                         // showDialog(
                         //     context: context,

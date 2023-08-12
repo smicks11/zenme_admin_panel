@@ -20,8 +20,57 @@ class DashboardController extends GetxController {
       PlatformFile(name: '', size: 0).obs;
   Rx<PlatformFile>? dummyselectedAudioFiles =
       PlatformFile(name: '', size: 0).obs;
+
+  TextEditingController textController = TextEditingController();
+  RxList<String> chipItems = <String>[].obs;
   // PlatformFile(name: '', size: 0).obs;
   // Rx<PlatformFile>? selectedMusicFiles = PlatformFile(name: '', size: 0).obs;
+
+  addItem() {
+    if (textController.text.isNotEmpty) {
+      chipItems.insert(0, textController.text);
+      textController.clear();
+    }
+  }
+
+  removeItem(String item) {
+    chipItems.remove(item);
+  }
+
+  Future<void> updateQuotesList(
+      List<String> newQuotes, BuildContext context) async {
+    changeEditLoadingState(true);
+    try {
+      String documentId = "kTOmfndHotK1sCJVRIwr";
+      CollectionReference quotesCollection =
+          FirebaseFirestore.instance.collection('quotes');
+
+      await quotesCollection.doc(documentId).update({
+        'allQuotes': newQuotes,
+        'initialTimeOfLaunch': DateTime.now(),
+        'quoteOfTheDay': newQuotes[0]
+      });
+
+      changeEditLoadingState(false);
+      AppDialog.showSuccessDialog(
+        lottie: '64787-success.json',
+        context: context,
+        header: "Quotes updated",
+        body: "Ride on",
+      );
+
+      print('Document updated successfully');
+    } catch (error) {
+      changeEditLoadingState(false);
+      AppDialog.showSuccessDialog(
+        lottie: 'oops.json',
+        context: context,
+        header: "Something went wrong 😞",
+        body: "Retry",
+      );
+      print('Error updating document: $error');
+    }
+  }
 
   changeAuthLoad(bool value, StateSetter setState) {
     setState(() {
@@ -250,12 +299,11 @@ class DashboardController extends GetxController {
   void onPressedProfil() {}
 
   void onSelectedMainMenu(int index, SelectionButtonData value) {
-    if(index == 6){
+    if (index == 7) {
       signOut();
-    }else{
+    } else {
       screenControllerIndex.value = index;
     }
-
   }
 
   void onSelectedHomeOptions(int index) {
@@ -802,11 +850,11 @@ class DashboardController extends GetxController {
       print(e.toString());
     }
   }
+
   Future<void> updateCrystalOfTheMonthImage({
     required BuildContext context,
     required String collectImage,
     int indexToUpdate = 1, // Default index is 0
-
   }) async {
     try {
       DocumentReference docRef =
@@ -849,11 +897,11 @@ class DashboardController extends GetxController {
       print(e.toString());
     }
   }
+
   Future<void> updateMeditationOfTheMonthImage({
     required BuildContext context,
     required String collectImage,
     int indexToUpdate = 0, // Default index is 0
-
   }) async {
     try {
       DocumentReference docRef =

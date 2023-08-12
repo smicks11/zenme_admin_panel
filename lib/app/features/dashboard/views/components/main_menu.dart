@@ -55,6 +55,11 @@ class _MainMenu extends StatelessWidget {
           label: "Fire Content",
         ),
         SelectionButtonData(
+          activeIcon: EvaIcons.questionMarkCircle,
+          icon: EvaIcons.questionMarkCircleOutline,
+          label: "Update Quote",
+        ),
+        SelectionButtonData(
           activeIcon: EvaIcons.logOut,
           icon: EvaIcons.logOutOutline,
           label: "Log out",
