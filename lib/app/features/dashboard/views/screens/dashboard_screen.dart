@@ -521,20 +521,22 @@ class DashboardScreen extends GetView<DashboardController> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: controller.chipItems.map((item) {
-                return Container(
-                  margin: EdgeInsets.only(right: 8),
-                  child: Chip(
-                    label: Row(
-                      children: [
-                        Text(item),
-                        SizedBox(width: 4),
-                        GestureDetector(
-                          onTap: () => controller.removeItem(item),
-                          child: Icon(Icons.clear, size: 16),
-                        ),
-                      ],
+                return GestureDetector(
+                  onTap: () {
+                    controller.removeItem(item);
+                  },
+                  child: Container(
+                    margin: EdgeInsets.only(right: 8),
+                    child: Chip(
+                      label: Row(
+                        children: [
+                          Text(item),
+                          SizedBox(width: 4),
+                          Icon(EvaIcons.close, size: 16),
+                        ],
+                      ),
+                      backgroundColor: Colors.red.withOpacity(0.2),
                     ),
-                    backgroundColor: Colors.red.withOpacity(0.2),
                   ),
                 );
               }).toList(),
